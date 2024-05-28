@@ -1,7 +1,10 @@
-﻿namespace lojaHemilly.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace lojaHemilly.Models
 {
     public class Compra
     {
+        [Key]
         public int CompraID { get; set; }
         public int FornecedorID { get; set; }
         public DateTime DataCompra { get; set; }

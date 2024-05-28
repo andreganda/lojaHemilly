@@ -1,7 +1,10 @@
-﻿namespace lojaHemilly.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace lojaHemilly.Models
 {
     public class Fornecedor
     {
+        [Key]
         public int FornecedorID { get; set; }
         public string NomeFornecedor { get; set; }
         public string Contato { get; set; }
