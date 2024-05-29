@@ -1,4 +1,5 @@
 using lojaHemilly.DataBase;
+using lojaHemilly.Service;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,16 +8,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 
-
-
-
 // Adicionar o serviço do DbContext com MySQL
 builder.Services.AddDbContext<FlorDeLizContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
     new MySqlServerVersion(new Version(8, 0, 25))));
 
 
-
+// Registrando o serviço. 
+builder.Services.AddScoped<IClienteService, ClienteService>();
 
 
 

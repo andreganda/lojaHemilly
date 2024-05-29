@@ -7,16 +7,19 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using lojaHemilly.DataBase;
 using lojaHemilly.Models;
+using lojaHemilly.Service;
 
 namespace lojaHemilly.Controllers
 {
     public class ClienteController : Controller
     {
         private readonly FlorDeLizContext _context;
+        private readonly IClienteService _clienteService;
 
-        public ClienteController(FlorDeLizContext context)
+        public ClienteController(FlorDeLizContext context, IClienteService clienteService)
         {
             _context = context;
+            _clienteService = clienteService;
         }
 
         // GET: Cliente
@@ -58,8 +61,7 @@ namespace lojaHemilly.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(cliente);
-                await _context.SaveChangesAsync();
+                await _clienteService.Create(cliente);
                 return RedirectToAction(nameof(Index));
             }
             return View(cliente);
