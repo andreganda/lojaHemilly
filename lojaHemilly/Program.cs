@@ -1,6 +1,7 @@
 using lojaHemilly.DataBase;
 using lojaHemilly.Service;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +35,16 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+
+// Configure additional static files middleware to serve from a different directory
+var externalStaticFilesPath = Path.Combine(Directory.GetCurrentDirectory(), "Views");
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(externalStaticFilesPath),
+    RequestPath = "/Views"
+});
+
 
 app.UseRouting();
 

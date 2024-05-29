@@ -47,6 +47,10 @@
     <a asp-action="Index">Back to List</a>
 </div>
 
+<script src="/Views/Cliente/Js/Create.js"></script>
+
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }
