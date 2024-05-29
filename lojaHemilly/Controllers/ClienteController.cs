@@ -52,17 +52,15 @@ namespace lojaHemilly.Controllers
             return View();
         }
 
-        // POST: Cliente/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ClienteID,Nome,Email,Telefone,Endereco,DataCadastro")] Cliente cliente)
+        public async Task<IActionResult> Create([FromForm] Cliente cliente)
         {
             if (ModelState.IsValid)
             {
                 await _clienteService.Create(cliente);
-                return RedirectToAction(nameof(Index));
+                //return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Create));
             }
             return View(cliente);
         }
