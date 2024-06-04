@@ -22,13 +22,12 @@ namespace lojaHemilly.Controllers
             _clienteService = clienteService;
         }
 
-        // GET: Cliente
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Cliente.ToListAsync());
+            var lista = await _context.Clientes.Where(c => c.Status == 1).ToListAsync();
+            return View(lista);
         }
 
-        // GET: Cliente/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -36,7 +35,7 @@ namespace lojaHemilly.Controllers
                 return NotFound();
             }
 
-            var cliente = await _context.Cliente
+            var cliente = await _context.Clientes
                 .FirstOrDefaultAsync(m => m.ClienteID == id);
             if (cliente == null)
             {
@@ -46,7 +45,6 @@ namespace lojaHemilly.Controllers
             return View(cliente);
         }
 
-        // GET: Cliente/Create
         public IActionResult Create()
         {
             return View();
@@ -58,22 +56,28 @@ namespace lojaHemilly.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _clienteService.Create(cliente);
-                //return RedirectToAction(nameof(Index));
-                return RedirectToAction(nameof(Create));
+
+                if (cliente.Email!=string.Empty && cliente.Email !=null)
+                {
+                    // Verificar se o e-mail já está em uso
+                    var emailExistente = await _clienteService.VerificarEmailExistenteAsync(cliente.Email);
+                    if (emailExistente != null)
+                    {
+                        TempData["MessageError"] = $"O e-mail {cliente.Email} já está em uso.";
+                        return RedirectToAction(nameof(Index));
+                    } 
+                }
+                cliente.Status = 1; //cliente ativo
+                var c = await _clienteService.Create(cliente);
+                TempData["MessageSuccess"] = $"Cliente {cliente.Nome} cadastrado com sucesso!";
+                return RedirectToAction(nameof(Index));
             }
             return View(cliente);
         }
 
-        // GET: Cliente/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var cliente = await _context.Cliente.FindAsync(id);
+            var cliente = await _clienteService.Detail(id);
             if (cliente == null)
             {
                 return NotFound();
@@ -81,12 +85,9 @@ namespace lojaHemilly.Controllers
             return View(cliente);
         }
 
-        // POST: Cliente/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ClienteID,Nome,Email,Telefone,Endereco,DataCadastro")] Cliente cliente)
+        public async Task<IActionResult> Edit(int id, [FromForm] Cliente cliente)
         {
             if (id != cliente.ClienteID)
             {
@@ -97,8 +98,19 @@ namespace lojaHemilly.Controllers
             {
                 try
                 {
-                    _context.Update(cliente);
-                    await _context.SaveChangesAsync();
+                    if (cliente.Email != string.Empty && cliente.Email != null)
+                    {
+                        // Verificar se o e-mail já está em uso
+                        var emailExistente = await _clienteService.VerificarEmailExistenteAsync(cliente.Email);
+                        if (emailExistente != null && emailExistente.ClienteID != id)
+                        {
+                            TempData["MessageError"] = $"O e-mail {cliente.Email} já está em uso.";
+                            return RedirectToAction(nameof(Index));
+                        } 
+                    }
+
+                    await _clienteService.Update(cliente);
+                    TempData["MessageSuccess"] = $"Cliente {cliente.Nome} foi alterado com sucesso!";
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -116,7 +128,6 @@ namespace lojaHemilly.Controllers
             return View(cliente);
         }
 
-        // GET: Cliente/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -124,7 +135,7 @@ namespace lojaHemilly.Controllers
                 return NotFound();
             }
 
-            var cliente = await _context.Cliente
+            var cliente = await _context.Clientes
                 .FirstOrDefaultAsync(m => m.ClienteID == id);
             if (cliente == null)
             {
@@ -139,19 +150,23 @@ namespace lojaHemilly.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var cliente = await _context.Cliente.FindAsync(id);
-            if (cliente != null)
+           var del = await _clienteService.DeleteOff(id);
+
+            if (del)
             {
-                _context.Cliente.Remove(cliente);
+                TempData["MessageSuccess"] = $"Cliente removido com sucesso";
+            }
+            else
+            {
+                TempData["MessageError"] = $"Erro ao excluir cliente, tente novamente.";
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool ClienteExists(int id)
         {
-            return _context.Cliente.Any(e => e.ClienteID == id);
+            return _context.Clientes.Any(e => e.ClienteID == id);
         }
     }
 }
