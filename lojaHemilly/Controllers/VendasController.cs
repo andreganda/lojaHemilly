@@ -19,14 +19,12 @@ namespace lojaHemilly.Controllers
             _context = context;
         }
 
-        // GET: Vendas
         public async Task<IActionResult> Index()
         {
             var florDeLizContext = _context.Vendas.Include(v => v.Cliente);
             return View(await florDeLizContext.ToListAsync());
         }
 
-        // GET: Vendas/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -45,7 +43,6 @@ namespace lojaHemilly.Controllers
             return View(venda);
         }
 
-        // GET: Vendas/Create
         public IActionResult Create()
         {
 
@@ -62,7 +59,7 @@ namespace lojaHemilly.Controllers
             };
 
             // Criando a lista selecionável a partir dos clientes
-            var listaSelecionavelClientes = new SelectList(_context.Clientes, "ClienteID", "Nome");
+            var listaSelecionavelClientes = new SelectList(_context.Clientes.Where(a=> a.Status == 1), "ClienteID", "Nome");
 
             // Concatenando a lista manual com a lista selecionável dos clientes
             var listaCompleta = listaManual.Concat(listaSelecionavelClientes);
@@ -84,7 +81,17 @@ namespace lojaHemilly.Controllers
             return View(venda);
         }
 
-        // GET: Vendas/Edit/5
+        /// <summary>
+        /// SALVAR A VENDA CRIADA
+        /// </summary>
+        /// <param name="venda"></param>
+        [HttpPost]
+        public void SalvarVenda([FromBody] VendaViewModel venda)
+        {
+
+
+        }
+
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -101,9 +108,6 @@ namespace lojaHemilly.Controllers
             return View(venda);
         }
 
-        // POST: Vendas/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,DataDaVenda,ClienteId,PrecoTotal,NumeroParcelas,Total")] Venda venda)
@@ -137,7 +141,6 @@ namespace lojaHemilly.Controllers
             return View(venda);
         }
 
-        // GET: Vendas/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -156,7 +159,6 @@ namespace lojaHemilly.Controllers
             return View(venda);
         }
 
-        // POST: Vendas/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -174,6 +176,19 @@ namespace lojaHemilly.Controllers
         private bool VendaExists(int id)
         {
             return _context.Vendas.Any(e => e.Id == id);
+        }
+
+
+
+
+        public class VendaViewModel
+        {
+            public string DataDaVenda { get; set; }
+            public int ClienteId { get; set; }
+            public decimal PrecoTotal { get; set; }
+            public int NumeroParcelas { get; set; }
+            public decimal Total { get; set; }
+            public decimal Entrada { get; set; }
         }
     }
 }

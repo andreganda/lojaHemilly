@@ -4,51 +4,202 @@
     ViewData["Title"] = "Create";
 }
 
+<style>
+    #btnAdicionar {
+        margin-top: 22px;
+        width: 100%;
+    }
+
+    #valorTotal {
+        text-align: right;
+        font-size: 30px;
+        font-weight: bold;
+    }
+
+    .vertical-align-middle {
+        vertical-align: middle;
+    }
+
+</style>
+
+
 <h1>Nova venda</h1>
 
-<h4>Venda</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-            <div class="form-group">
-                <label class="control-label">Cliente</label>
-                <select asp-for="ClienteId" class="form-control" asp-items="ViewBag.ClienteId"></select>
-            </div>
+<div class="card card-custom gutter-b">
+    <div class="card-header">
+        <div class="card-title">
+            <h3 class="card-label">
+                Nova venda
+                <small>Insira as informações</small>
+            </h3>
+        </div>
+    </div>
+    <div class="card-body">
 
-            <div class="form-group">
-                <label asp-for="DataDaVenda" class="control-label"></label>
-                <input asp-for="DataDaVenda" class="form-control" />
-                <span asp-validation-for="DataDaVenda" class="text-danger"></span>
-            </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="form-group row">
+                    <label class="control-label">Cliente</label>
+                    <select asp-for="ClienteId" class="form-control" asp-items="ViewBag.ClienteId"></select>
+                </div>
+                <div class="form-group row">
+                    <label class="control-label">Data Compra</label>
+                    <input type="date" id="DataCompra" class="form-control" />
+                </div>
 
-            <div class="form-group">
-                <label asp-for="PrecoTotal" class="control-label"></label>
-                <input asp-for="PrecoTotal" class="form-control" />
-                <span asp-validation-for="PrecoTotal" class="text-danger"></span>
+                <div class="form-group row">
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label for="input1">Descrição Produto</label>
+                            <input type="text" class="form-control" id="NomeDoProduto">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label for="input2">Quantidade</label>
+                            <input type="number" value="1" class="form-control" id="Quantidade">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label for="input2">Valor unitário</label>
+                            <input type="text" class="form-control" value="0,00"
+                                   onkeyup="FormatarMoeda(this);" onkeydown="AdicionarProdutoEnter(event);"
+                                   id="PrecoUnitario">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-primary" onclick="AdicionarProduto();" id="btnAdicionar">Adicionar</button>
+                        </div>
+                    </div>
+
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-primary" onclick="FinalizarCompra();" id="btnAdicionar">Finalizar</button>
+                        </div>
+                    </div>
+
+                </div>
+
             </div>
-            <div class="form-group">
-                <label asp-for="NumeroParcelas" class="control-label"></label>
-                <input asp-for="NumeroParcelas" class="form-control" />
-                <span asp-validation-for="NumeroParcelas" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Total" class="control-label"></label>
-                <input asp-for="Total" class="form-control" />
-                <span asp-validation-for="Total" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
+
+        <div id="valorTotal"></div>
+
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
+<div class="card card-custom gutter-b">
+    <div class="card-header">
+        <div class="card-title">
+            <h3 class="card-label">
+                Produtos
+                <small> Descrição, valor e quantidade dos produtos da compra </small>
+            </h3>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Descrição</th>
+                        <th scope="col">Valor unitário</th>
+                        <th scope="col">Quantidade</th>
+                        <th scope="col">Total</th>
+                        <th scope="col">...</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyProdutos">
+                    @* <tr>
+                    <th scope="row">1</th>
+                    <td>Mark</td>
+                    <td>Otto</td>
+                    <td>mdo</td>
+                    <td>mdo</td>
+                    </tr> *@
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
+
+
+<!-- Modal-->
+<div class="modal fade" id="modal_finalizacao" data-backdrop="static" tabindex="-1" backs role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog  modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel"> Finalização Compra </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <i aria-hidden="true" class="ki ki-close"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group row">
+                            <div class="col-lg-6">
+                                <label>N° Parcela(s):</label>
+                                <div class="input-group">
+                                    <select id="TipoFormaPagamento" class="form-control" onchange="FormaPagamento();">
+                                        <option value="2">A VISTA</option>
+                                        <option value="1">PARCELADO</option>
+                                    </select>
+                                </div>
+                                <span class="form-text text-muted">Tipo de pagamento</span>
+                            </div>
+                            <div class="col-lg-6" style="display:none" id="divEntrada">
+                                <label>Entrada:</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="ValorEntrada" value="0,00" onkeyup="FormatarMoeda(this); RefazerValorTotal();">
+                                </div>
+                                <span class="form-text text-muted">Entrada para abater nas parcelas</span>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6">
+                            <div class="form-group row" id="divNumeroParcelas" style="display:none">
+                                <label class="control-label">Número de parcelas: </label>
+                                <input type="number" value="1" class="form-control" id="NumeroParcelas" onkeyup="CalcularPrecoParcela()" onchange="CalcularPrecoParcela()">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h4 style="text-align:center" id="h4TotalCompra"> </h4>
+                            </div>
+                        </div>
+
+                        <div class="form-group row" id="divTableParcelas" style="display:none">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Nº Parcela</th>
+                                        <th scope="col">Data</th>
+                                        <th scope="col">Valor</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodyParcelas">
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-warning font-weight-bold" onclick="LimparDadosModalPagamento();" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success font-weight-bold" onclick="SalvarCompra();">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 
 
 
@@ -56,6 +207,11 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
         <script src="/Views/Vendas/Js/Create.js"></script>
+        <script src="/Views/Vendas/Js/Validacao.js"></script>
+        <script src="/Views/Vendas/Js/Finalizacao.js"></script>
+        <script src="/Views/Vendas/Js/Salvar.js"></script>
+
+        <script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js"></script>
     }
 }
 

@@ -46,6 +46,7 @@ namespace lojaHemilly.Service
                 if (clienteDb != null)
                 {
                     clienteDb.DataAlteracaoCadastro = DateTime.Now;
+                    clienteDb.Nome = cliente.Nome.ToUpper();
                     _context.Update(clienteDb);
                     await _context.SaveChangesAsync();
                     return clienteDb;
