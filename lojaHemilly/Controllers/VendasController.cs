@@ -86,10 +86,9 @@ namespace lojaHemilly.Controllers
         /// </summary>
         /// <param name="venda"></param>
         [HttpPost]
-        public void SalvarVenda([FromBody] VendaViewModel venda)
+        public int SalvarVenda(VendaViewModel venda)
         {
-
-
+            return 1;
         }
 
         public async Task<IActionResult> Edit(int? id)
@@ -187,8 +186,8 @@ namespace lojaHemilly.Controllers
             public int ClienteId { get; set; }
             public decimal PrecoTotal { get; set; }
             public int NumeroParcelas { get; set; }
-            public decimal Total { get; set; }
-            public decimal Entrada { get; set; }
+            public string Total { get; set; }
+            public string Entrada { get; set; }
         }
     }
 }

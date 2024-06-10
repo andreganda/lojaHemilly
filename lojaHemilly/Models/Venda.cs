@@ -7,7 +7,6 @@ namespace lojaHemilly.Models
         public int Id { get; set; }
         public DateTime DataDaVenda { get; set; }
         public int ClienteId { get; set; }
-        public decimal PrecoTotal { get; set; }
         public int NumeroParcelas { get; set; }
         public Cliente Cliente { get; set; }
         public decimal Total { get; set; }
