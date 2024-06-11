@@ -27,8 +27,8 @@ namespace lojaHemilly.Models
 
         /// <summary>
         /// Verifica se a venda esta paga ou não
-        /// 1-> Compra ainda não paga
-        /// 2-> Compra toda paga, todas as parcelas foram pagas
+        /// 0-> Compra ainda não paga
+        /// 1-> Compra toda paga, todas as parcelas foram pagas
         /// </summary>
         public int Status { get; set; }
         public ICollection<ItemVenda> Itens { get; set; }

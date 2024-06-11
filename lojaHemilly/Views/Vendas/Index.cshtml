@@ -1,79 +1,67 @@
-﻿@model IEnumerable<lojaHemilly.Models.Venda>
+﻿@using static lojaHemilly.Controllers.VendasController
+@model IEnumerable<lojaHemilly.Models.Venda>
 
 @{
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var listaSelect = ViewData["ListaSeletFiltro"] as List<ItensSelectStatus>;
+ 
+    var startDate = ViewData["StartDate"] as string;
+    var endDate = ViewData["EndDate"] as string;
+    var status = ViewData["status"] as string;
 }
 
-<h1>Index</h1>
+<h1>Lista de vendas</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
+<div class="card card-custom gutter-b">
+    <div class="card-header">
+        <div class="card-title">
+            <h3 class="card-label">
+                Filtros Pesquisa
+                <small>sub title</small>
+            </h3>
+        </div>
+    </div>
+    <div class="card-body">
+        <form method="get" asp-controller="Vendas" asp-action="Index">
+            <div class="form-group row">
+                <div class="col-lg-4">
+                    <label>Data Inicio:</label>
+                    <input type="date" class="form-control" id="startDate" name="startDate" value="@startDate">
+                    <span class="form-text text-muted">Data inicio pesquisa</span>
+                </div>
+                <div class="col-lg-4">
+                    <label>Data fim:</label>
+                    <input type="date" class="form-control" id="endDate" name="endDate" value="@endDate">
+                    <span class="form-text text-muted">Data fim pesquisa</span>
+                </div>
+                <div class="col-lg-4">
+                    <label>Status:</label>
+                    <select id="status" name="status" class="form-control">
+                        @foreach (var item in listaSelect)
+                        {
+                            @if (item.Value.ToString() == status)
+                            {
+                                <option selected="selected" value="@item.Value"> @item.Descricao </option>
+                            }
+                            else
+                            {
+                                <option value="@item.Value"> @item.Descricao </option>
+                            }
+                        }
+                    </select>
+                    <span class="form-text text-muted">Please enter your username</span>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-lg-4">
+                    <button class="btn btn-success btn-shadow font-weight-bold mr-2" type="submit">Filtrar</button>
+                </div>
+            </div>
 
-@* <table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.DataDaVenda)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.NumeroParcelas)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Cliente)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Total)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Entrada)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TipoPagamento)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Status)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.DataDaVenda)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.NumeroParcelas)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Cliente.Nome)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Total)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Entrada)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TipoPagamento)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Status)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
-
- *@
-
+        </form>
+    </div>
+</div>
 
 <div class="card card-custom gutter-b">
     <div class="card-header">
@@ -92,10 +80,10 @@
             <thead>
                 <tr>
                     <th>
-                       Data da venda
+                        Data da venda
                     </th>
                     <th>
-                       N° de parcelas
+                        N° de parcelas
                     </th>
                     <th>
                         @Html.DisplayNameFor(model => model.Cliente)
@@ -107,13 +95,11 @@
                         @Html.DisplayNameFor(model => model.Entrada)
                     </th>
                     <th>
-                      Tipo Pagamento
+                        Tipo Pagamento
                     </th>
                     <th>
                         @Html.DisplayNameFor(model => model.Status)
                     </th>
-                    @* <th>
-                    </th> *@
                 </tr>
             </thead>
             <tbody>
@@ -121,7 +107,7 @@
                 {
                     <tr>
                         <td>
-                           @item.DataDaVenda.Date.ToShortDateString()
+                            @item.DataDaVenda.Date.ToShortDateString()
                         </td>
                         <td>
                             @Html.DisplayFor(modelItem => item.NumeroParcelas)
@@ -136,7 +122,8 @@
                             @Html.DisplayFor(modelItem => item.Entrada)
                         </td>
                         <td>
-                            @if (item.TipoPagamento == 1){
+                            @if (item.TipoPagamento == 1)
+                            {
                                 <p>Parcelado</p>
                             }
                             else
@@ -145,13 +132,15 @@
                             }
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.Status)
+                            @if (item.Status == 1)
+                            {
+                                <span class="label label-md label-success label-inline mr-2">Pago</span>
+                            }
+                            else
+                            {
+                                <span class="label label-md label-danger label-inline mr-2">Pendente</span>
+                            }
                         </td>
-                       @*  <td>
-                            <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                            <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                            <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-                        </td> *@
                     </tr>
                 }
             </tbody>
@@ -159,3 +148,11 @@
 
     </div>
 </div>
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        <script src="/Views/Vendas/Js/Index/Index.js"></script>
+    }
+}

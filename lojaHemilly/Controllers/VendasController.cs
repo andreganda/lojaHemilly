@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using lojaHemilly.DataBase;
 using lojaHemilly.Models;
 using lojaHemilly.Service;
+using MySqlConnector;
+using System.Data.SqlClient;
 
 namespace lojaHemilly.Controllers
 {
@@ -46,7 +48,7 @@ namespace lojaHemilly.Controllers
             };
 
             // Criando a lista selecionável a partir dos clientes
-            var listaSelecionavelClientes = new SelectList(_context.Clientes.Where(a=> a.Status == 1), "ClienteID", "Nome");
+            var listaSelecionavelClientes = new SelectList(_context.Clientes.Where(a => a.Status == 1), "ClienteID", "Nome");
 
             // Concatenando a lista manual com a lista selecionável dos clientes
             var listaCompleta = listaManual.Concat(listaSelecionavelClientes);
@@ -75,12 +77,12 @@ namespace lojaHemilly.Controllers
                 if (venda.TipoFormaPagamento == 2)
                 {
                     novaVenda.NumeroParcelas = 0;
-                    novaVenda.Status = 2;
+                    novaVenda.Status = 1;
                 }
                 else
                 {
                     novaVenda.NumeroParcelas = venda.NumeroParcelas;
-                    novaVenda.Status = 1;
+                    novaVenda.Status = 0;
                 }
 
                 var vendaIncluida = await _vendaService.Create(novaVenda);
@@ -91,7 +93,7 @@ namespace lojaHemilly.Controllers
 
                     //Criando parcelas
                     if (venda.TipoFormaPagamento == 1)
-                        await SalvarParcelasAsync(vendaIncluida); 
+                        await SalvarParcelasAsync(vendaIncluida);
                 }
                 m.Status = 1;
                 m.Descricao = "Compra incluída com sucesso";
@@ -134,11 +136,11 @@ namespace lojaHemilly.Controllers
 
         private async Task<bool> SalvarParcelasAsync(Venda venda)
         {
-            var valorParcela = (venda.Total-venda.Entrada) / venda.NumeroParcelas;
-          
+            var valorParcela = (venda.Total - venda.Entrada) / venda.NumeroParcelas;
+
             try
             {
-                for (var i = 1; i <= venda.NumeroParcelas;  i++)
+                for (var i = 1; i <= venda.NumeroParcelas; i++)
                 {
                     var dataVenda = venda.DataDaVenda;
                     var parcela = new Parcela();
@@ -172,11 +174,52 @@ namespace lojaHemilly.Controllers
             ViewData["ClienteId"] = new SelectList(_context.Clientes, "ClienteID", "Nome", venda.ClienteId);
             return View(venda);
         }
-        public async Task<IActionResult> Index()
+
+
+
+        public async Task<IActionResult> Index(DateTime? startDate, DateTime? endDate, int? status)
         {
-            var florDeLizContext = _context.Vendas.Include(v => v.Cliente).Include(a=> a.Parcelas);
-            return View(await florDeLizContext.ToListAsync());
+
+            if (!status.HasValue)
+                status = 0;
+
+            var query = $"";
+
+            if (status == -1)
+            {
+                query = $"(status = 0 or status = 1) ";
+            }
+            else
+            {
+                query = $"(status = {status}) ";
+            }
+
+            if (startDate != null)
+            {
+                string de = String.Format("{0:yyyy-MM-dd}", Convert.ToDateTime(startDate));
+                query += $" and (date(DataDaVenda) >= '{de}') ";
+            }
+
+            if (endDate != null)
+            {
+                string ate = String.Format("{0:yyyy-MM-dd}", Convert.ToDateTime(endDate));
+                query += $"and (date(DataDaVenda) <= '{ate}') ";
+            }
+
+            var sqlQuery = $"SELECT * FROM vendas where {query}";
+
+            var vendas = await _context.Vendas.FromSqlRaw(sqlQuery).Include(v => v.Cliente).Include(a => a.Parcelas).ToListAsync();
+
+            ViewData["StartDate"] = startDate != null ? startDate.Value.ToString("yyyy-MM-dd") : "";
+            ViewData["EndDate"] = endDate != null ? endDate.Value.ToString("yyyy-MM-dd") : "";
+            ViewData["status"] = status.ToString();
+
+            ViewData["ListaSeletFiltro"] = ListaSelect();
+            //return View(await florDeLizContext.ToListAsync());
+            return View(vendas);
         }
+
+
 
         public async Task<IActionResult> Details(int? id)
         {
@@ -293,6 +336,21 @@ namespace lojaHemilly.Controllers
             public string Entrada { get; set; }
             public int TipoFormaPagamento { get; set; }
             public IEnumerable<ItemVendaDto> ItensVenda { get; set; }
+        }
+
+        public class ItensSelectStatus
+        {
+            public int Value { get; set; }
+            public string? Descricao { get; set; }
+        }
+
+        public List<ItensSelectStatus> ListaSelect()
+        {
+            var lista = new List<ItensSelectStatus>();
+            lista.Add(new ItensSelectStatus { Value = 0, Descricao = "Pendente" });
+            lista.Add(new ItensSelectStatus { Value = -1, Descricao = "Todos" });
+            lista.Add(new ItensSelectStatus { Value = 1, Descricao = "Pago" });
+            return lista;
         }
     }
 }
