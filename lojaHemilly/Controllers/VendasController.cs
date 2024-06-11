@@ -174,7 +174,7 @@ namespace lojaHemilly.Controllers
         }
         public async Task<IActionResult> Index()
         {
-            var florDeLizContext = _context.Vendas.Include(v => v.Cliente);
+            var florDeLizContext = _context.Vendas.Include(v => v.Cliente).Include(a=> a.Parcelas);
             return View(await florDeLizContext.ToListAsync());
         }
 
