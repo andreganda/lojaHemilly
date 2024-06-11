@@ -17,6 +17,9 @@ builder.Services.AddDbContext<FlorDeLizContext>(options =>
 
 // Registrando o serviço. 
 builder.Services.AddScoped<IClienteService, ClienteService>();
+builder.Services.AddScoped<IVendaService, VendaService>();
+builder.Services.AddScoped<IItemVendaService, ItemVendaService>();
+builder.Services.AddScoped<IParcelaService, ParcelaService>();
 
 
 

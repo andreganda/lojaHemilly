@@ -7,40 +7,27 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using lojaHemilly.DataBase;
 using lojaHemilly.Models;
+using lojaHemilly.Service;
 
 namespace lojaHemilly.Controllers
 {
     public class VendasController : Controller
     {
         private readonly FlorDeLizContext _context;
+        private readonly IVendaService _vendaService;
+        private readonly IItemVendaService _itemVendaService;
+        private readonly IParcelaService _parcelaService;
 
-        public VendasController(FlorDeLizContext context)
+        public VendasController(
+            FlorDeLizContext context,
+            IVendaService vendaService,
+            IItemVendaService itemVendaService,
+            IParcelaService parcelaService)
         {
             _context = context;
-        }
-
-        public async Task<IActionResult> Index()
-        {
-            var florDeLizContext = _context.Vendas.Include(v => v.Cliente);
-            return View(await florDeLizContext.ToListAsync());
-        }
-
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var venda = await _context.Vendas
-                .Include(v => v.Cliente)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (venda == null)
-            {
-                return NotFound();
-            }
-
-            return View(venda);
+            _vendaService = vendaService;
+            _itemVendaService = itemVendaService;
+            _parcelaService = parcelaService;
         }
 
         public IActionResult Create()
@@ -67,6 +54,111 @@ namespace lojaHemilly.Controllers
             return listaCompleta;
         }
 
+
+        [HttpPost]
+        public async Task<Mensagem> SalvarVendaAsync(VendaViewModel venda)
+        {
+            var m = new Mensagem();
+            try
+            {
+                decimal entrada = decimal.Parse(venda.Entrada.Replace("R$", "").Trim());
+                decimal total = Convert.ToDecimal(venda.Total.Replace("R$", "").Trim());
+
+                var novaVenda = new Venda();
+                novaVenda.Entrada = entrada;
+                novaVenda.Total = total;
+                novaVenda.DataDaVenda = Convert.ToDateTime(venda.DataDaVenda);
+                novaVenda.ClienteId = venda.ClienteId;
+                novaVenda.TipoPagamento = venda.TipoFormaPagamento;
+
+                //venda a vista;
+                if (venda.TipoFormaPagamento == 2)
+                {
+                    novaVenda.NumeroParcelas = 0;
+                    novaVenda.Status = 2;
+                }
+                else
+                {
+                    novaVenda.NumeroParcelas = venda.NumeroParcelas;
+                    novaVenda.Status = 1;
+                }
+
+                var vendaIncluida = await _vendaService.Create(novaVenda);
+
+                if (vendaIncluida.Id != 0)
+                {
+                    await SalvarItensVendaAsync(vendaIncluida.Id, venda.ItensVenda);
+
+                    //Criando parcelas
+                    if (venda.TipoFormaPagamento == 1)
+                        await SalvarParcelasAsync(vendaIncluida); 
+                }
+                m.Status = 1;
+                m.Descricao = "Compra incluída com sucesso";
+                return m;
+            }
+            catch (Exception ex)
+            {
+                m.Status = 0;
+                m.Descricao = ex.Message.ToString();
+                return m;
+            }
+        }
+
+        private async Task<Mensagem> SalvarItensVendaAsync(int idVenda, IEnumerable<ItemVendaDto> itens)
+        {
+            Mensagem m = new Mensagem();
+            try
+            {
+                foreach (var item in itens)
+                {
+                    var novoItem = new ItemVenda();
+                    novoItem.NomeDoProduto = item.NomeDoProduto.ToUpper();
+                    novoItem.VendaId = idVenda;
+                    novoItem.PrecoUnitario = Convert.ToDecimal(item.PrecoUnitario.Replace(".", ","));
+                    novoItem.Quantidade = item.Quantidade;
+                    await _itemVendaService.Create(novoItem);
+                }
+
+                m.Status = 1;
+            }
+            catch (Exception ex)
+            {
+                m.Status = 0;
+                m.Descricao = ex.Message;
+                return m;
+            }
+
+            return m;
+        }
+
+        private async Task<bool> SalvarParcelasAsync(Venda venda)
+        {
+            var valorParcela = (venda.Total-venda.Entrada) / venda.NumeroParcelas;
+          
+            try
+            {
+                for (var i = 1; i <= venda.NumeroParcelas;  i++)
+                {
+                    var dataVenda = venda.DataDaVenda;
+                    var parcela = new Parcela();
+                    parcela.VendaId = venda.Id;
+                    parcela.NumeroParcela = i;
+                    parcela.DataVencimento = dataVenda.AddMonths(i);
+                    parcela.Valor = valorParcela;
+                    parcela.Pago = false;
+                    await _parcelaService.Create(parcela);
+                }
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        #region METODOS DEFAULT
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,DataDaVenda,ClienteId,PrecoTotal,NumeroParcelas,Total")] Venda venda)
@@ -80,15 +172,28 @@ namespace lojaHemilly.Controllers
             ViewData["ClienteId"] = new SelectList(_context.Clientes, "ClienteID", "Nome", venda.ClienteId);
             return View(venda);
         }
-
-        /// <summary>
-        /// SALVAR A VENDA CRIADA
-        /// </summary>
-        /// <param name="venda"></param>
-        [HttpPost]
-        public int SalvarVenda(VendaViewModel venda)
+        public async Task<IActionResult> Index()
         {
-            return 1;
+            var florDeLizContext = _context.Vendas.Include(v => v.Cliente);
+            return View(await florDeLizContext.ToListAsync());
+        }
+
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var venda = await _context.Vendas
+                .Include(v => v.Cliente)
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (venda == null)
+            {
+                return NotFound();
+            }
+
+            return View(venda);
         }
 
         public async Task<IActionResult> Edit(int? id)
@@ -177,17 +282,17 @@ namespace lojaHemilly.Controllers
             return _context.Vendas.Any(e => e.Id == id);
         }
 
-
-
+        #endregion
 
         public class VendaViewModel
         {
             public string DataDaVenda { get; set; }
             public int ClienteId { get; set; }
-            public decimal PrecoTotal { get; set; }
             public int NumeroParcelas { get; set; }
             public string Total { get; set; }
             public string Entrada { get; set; }
+            public int TipoFormaPagamento { get; set; }
+            public IEnumerable<ItemVendaDto> ItensVenda { get; set; }
         }
     }
 }

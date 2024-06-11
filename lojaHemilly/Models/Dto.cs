@@ -11,7 +11,7 @@
     {
         public string? NomeDoProduto { get; set; }
         public int Quantidade { get; set; }
-        public decimal PrecoUnitario { get; set; }
+        public string PrecoUnitario { get; set; }
     }
 
     public class ParcelaDto

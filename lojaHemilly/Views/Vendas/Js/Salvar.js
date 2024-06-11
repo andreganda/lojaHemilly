@@ -1,11 +1,11 @@
 ﻿function SalvarCompra() {
 
-
     let dataDaVenda = $("#DataCompra").val();
     let clienteId = $("#ClienteId").val();
-    let numeroParcelas = 0;
-    let total = totalCompra2;
+    let numeroParcelas = $("#NumeroParcelas").val();
+    let total = totalCompra2.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     let entrada = $("#ValorEntrada").val();
+    let tipoPagamento = $("#TipoFormaPagamento").val();
 
     // Obtém os dados do formulário
     var formData = {
@@ -13,7 +13,9 @@
         ClienteId: clienteId,
         NumeroParcelas: numeroParcelas,
         Total: total,
-        Entrada: entrada
+        Entrada: entrada,
+        TipoFormaPagamento: tipoPagamento,
+        ItensVenda: GetListaProdutos()
     };
     
     $.ajax({
@@ -34,6 +36,16 @@
     });
 
 
-    debugger;
+};
 
+function GetListaProdutos(){
+    let lista = [];
+
+    for (let index = 0; index < listaProdutos.length; index++) {
+        const element = listaProdutos[index];
+        if(element!=null){
+            lista.push(element);
+        }
+    }
+    return lista;
 };

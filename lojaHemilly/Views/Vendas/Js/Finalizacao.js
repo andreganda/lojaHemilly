@@ -47,7 +47,7 @@ function GetData(){
 };
 
 function LimparDadosModalPagamento(){
-    $("#divTableParcelas").empty();
+    $("#divTableParcelas").hide();
     $("#tbodyParcelas").empty();
     $("#divNumeroParcelas").hide();
     $("#divEntrada").hide();
