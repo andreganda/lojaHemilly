@@ -27,7 +27,24 @@
         //contentType: "application/x-www-form-urlencoded",
         success: function(msg) {
 
-            debugger;
+            if(msg.status == 1){
+                Swal.fire({
+                    title: "Eba",
+                    text: "Venda incluída com sucesso!",
+                    icon: "success",
+                    confirmButtonText: "OK!",
+                    allowOutsideClick: false,  // Evita que o alerta seja fechado ao clicar fora dele
+                    allowEscapeKey: false,     // Evita que o alerta seja fechado ao pressionar a tecla "Escape"
+                    allowEnterKey: false       // Evita que o alerta seja fechado ao pressionar a tecla "Enter"
+                }).then(function(result) {
+                    if (result.value) {
+                       debugger;
+
+                        //falta fazer o redirecionamento
+
+                    }
+                });
+            }
             
         },
         error: function(response) {
