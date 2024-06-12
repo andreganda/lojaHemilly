@@ -215,7 +215,7 @@ namespace lojaHemilly.Controllers
             ViewData["status"] = status.ToString();
 
             ViewData["ListaSeletFiltro"] = ListaSelect();
-            //return View(await florDeLizContext.ToListAsync());
+
             return View(vendas);
         }
 

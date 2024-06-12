@@ -1,5 +1,6 @@
 ﻿@using static lojaHemilly.Controllers.VendasController
 @model IEnumerable<lojaHemilly.Models.Venda>
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
 @{
     ViewData["Title"] = "Index";
@@ -10,6 +11,14 @@
     var endDate = ViewData["EndDate"] as string;
     var status = ViewData["status"] as string;
 }
+
+<style>
+    .btnOpcao{
+
+        height:20px;
+        text-align:center;
+    }
+</style>
 
 <h1>Lista de vendas</h1>
 
@@ -79,9 +88,8 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th>
-                        Data da venda
-                    </th>
+                    <th> Protocolo </th>
+                    <th> Data da venda</th>
                     <th>
                         N° de parcelas
                     </th>
@@ -100,6 +108,9 @@
                     <th>
                         @Html.DisplayNameFor(model => model.Status)
                     </th>
+                    <th>
+                       
+                    </th>
                 </tr>
             </thead>
             <tbody>
@@ -107,6 +118,8 @@
                 {
                     <tr>
                         <td>
+                            @item.Id
+                        </td> <td>
                             @item.DataDaVenda.Date.ToShortDateString()
                         </td>
                         <td>
@@ -141,6 +154,16 @@
                                 <span class="label label-md label-danger label-inline mr-2">Pendente</span>
                             }
                         </td>
+
+                        <td>
+                            <a > <span class="label label-md label-success label-inline mr-2">Itens</span></a>
+                            @if (item.TipoPagamento == 1)
+                            {
+                                <a asp-controller="Parcelas" asp-action="Index" asp-route-id="@item.Id"> <span class="label label-md label-warning label-inline mr-2">Parcelas</span></a>
+                            }
+                          
+                        </td>
+
                     </tr>
                 }
             </tbody>
