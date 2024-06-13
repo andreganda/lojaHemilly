@@ -2,6 +2,7 @@
 using lojaHemilly.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
+using System;
 
 namespace lojaHemilly.Service
 {
@@ -41,15 +42,23 @@ namespace lojaHemilly.Service
         {
             try
             {
-                var clienteDb = await _context.Clientes.FindAsync(cliente.ClienteID);
+                var clienteDb = await Detail(cliente.ClienteID);
+                var dataCadastro = clienteDb.DataCadastro;
+
+                cliente.DataCadastro = dataCadastro;
+                cliente.Nome = cliente.Nome.ToLower();
+                cliente.Status = clienteDb.Status;
 
                 if (clienteDb != null)
                 {
-                    clienteDb.DataAlteracaoCadastro = DateTime.Now;
-                    clienteDb.Nome = cliente.Nome.ToUpper();
-                    _context.Update(clienteDb);
+                    cliente.DataCadastro = dataCadastro;
+                    //_context.Clientes.Update(cliente);
+                    _context.Entry(clienteDb).CurrentValues.SetValues(cliente);
+
+
                     await _context.SaveChangesAsync();
-                    return clienteDb;
+
+                    return cliente;
                 }
 
                 return null;

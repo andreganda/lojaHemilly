@@ -177,7 +177,7 @@ namespace lojaHemilly.Controllers
 
 
 
-        public async Task<IActionResult> Index(DateTime? startDate, DateTime? endDate, int? status)
+        public async Task<IActionResult> Index(DateTime? startDate, DateTime? endDate, int? status, int? idCliente)
         {
 
             if (!status.HasValue)
@@ -206,6 +206,11 @@ namespace lojaHemilly.Controllers
                 query += $"and (date(DataDaVenda) <= '{ate}') ";
             }
 
+            if (idCliente != null)
+            {
+                query += $"and ClienteId = {idCliente}";
+            }
+
             var sqlQuery = $"SELECT * FROM vendas where {query}";
 
             var vendas = await _context.Vendas.FromSqlRaw(sqlQuery).Include(v => v.Cliente).Include(a => a.Parcelas).ToListAsync();
@@ -215,10 +220,10 @@ namespace lojaHemilly.Controllers
             ViewData["status"] = status.ToString();
 
             ViewData["ListaSeletFiltro"] = ListaSelect();
+            ViewData["ClienteId"] = ListaClientesSelectItem();
 
             return View(vendas);
         }
-
 
 
         public async Task<IActionResult> Details(int? id)

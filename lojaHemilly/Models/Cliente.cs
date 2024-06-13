@@ -11,13 +11,25 @@ namespace lojaHemilly.Models
         [Required (ErrorMessage = "Nome é obrigatório")]
         public string? Nome { get; set; }
 
-        [EmailAddress(ErrorMessage = "Esse não é um email válido")]
+		public string? Endereco { get; set; }
+
+		public string? Cpf { get; set; }
+		public string? Rg { get; set; }
+		public DateTime? DataNascimento { get; set; }
+		public string? EstadoCivil { get; set; }
+		public string? ContatoConjuge { get; set; }
+		public string? CasaPropriaAluguel { get; set; }
+		public string? Profissao { get; set; }
+		public string? LocalTrabalho { get; set; }
+		public decimal? RendaMensal{ get; set; }
+
+
+		[EmailAddress(ErrorMessage = "Esse não é um email válido")]
         [StringLength(100)]
         public string? Email { get; set; }
 
         [Required(ErrorMessage = "Nome é obrigatório")]
         public string Telefone { get; set; }
-        public string? Endereco { get; set; }
 
         public DateTime? DataCadastro { get; set; }
 

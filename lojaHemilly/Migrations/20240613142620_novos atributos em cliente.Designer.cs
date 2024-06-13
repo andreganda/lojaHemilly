@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using lojaHemilly.DataBase;
 
@@ -11,9 +12,11 @@ using lojaHemilly.DataBase;
 namespace lojaHemilly.Migrations
 {
     [DbContext(typeof(FlorDeLizContext))]
-    partial class FlorDeLizContextModelSnapshot : ModelSnapshot
+    [Migration("20240613142620_novos atributos em cliente")]
+    partial class novosatributosemcliente
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

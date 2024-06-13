@@ -49,6 +49,10 @@
                     <tr>
                         <td>
                             @Html.DisplayFor(modelItem => item.NumeroParcela)
+                            @if (item.Pago)
+                            {
+                                <span class="label label-xl label-dot label-success"></span>
+                            }
                         </td>
                         <td>
                             R$ @Html.DisplayFor(modelItem => item.Valor)
