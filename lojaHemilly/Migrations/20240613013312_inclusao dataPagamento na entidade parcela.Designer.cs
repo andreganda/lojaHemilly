@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using lojaHemilly.DataBase;
 
@@ -11,9 +12,11 @@ using lojaHemilly.DataBase;
 namespace lojaHemilly.Migrations
 {
     [DbContext(typeof(FlorDeLizContext))]
-    partial class FlorDeLizContextModelSnapshot : ModelSnapshot
+    [Migration("20240613013312_inclusao dataPagamento na entidade parcela")]
+    partial class inclusaodataPagamentonaentidadeparcela
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -100,10 +103,6 @@ namespace lojaHemilly.Migrations
 
                     b.Property<DateTime>("DataVencimento")
                         .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Historico")
-                        .IsRequired()
-                        .HasColumnType("longtext");
 
                     b.Property<int>("NumeroParcela")
                         .HasColumnType("int");

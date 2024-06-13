@@ -15,6 +15,8 @@
 <h4>Data Venda: @venda.DataDaVenda.ToShortDateString()</h4>
 <h4>Protocolo venda: @venda.Id </h4>
 
+<input type="hidden" value="" id="IdParcela"/>
+
 <div class="card card-custom gutter-b">
     <div class="card-header">
         <div class="card-title">
@@ -54,7 +56,7 @@
                         <td>
                             <p>
                                 @item.DataVencimento.ToShortDateString()
-                                @if (item.DataVencimento < dtAtual)
+                                @if ((item.DataVencimento < dtAtual) && !item.Pago)
                                 {
                                     diasVencido = dtAtual.Date.Subtract(item.DataVencimento.Date).TotalDays;
                                     <span>&nbsp;&nbsp;</span>
@@ -63,7 +65,17 @@
                             </p>
                         </td>
                         <td>
-                            <a href="javascript:AbrirModalParcela(@item.NumeroParcela, @diasVencido,'@Math.Round(item.Valor,2)');"><span class="label label-success label-inline mr-2" style="color:black; font-weight:bold">Receber</span></a>
+                            @if(!item.Pago){
+                                <a href="javascript:AbrirModalParcela(@item.NumeroParcela, @diasVencido,'@Math.Round(item.Valor,2)',@item.Id);">
+                                    <span class="label label-warning label-inline mr-2" style="color:black; font-weight:bold">Receber</span>
+                                </a>
+                            }
+                            @if(item.Historico != ""){
+                                <a href="javascript:AbrirModalDetalhesParcela(@item.Id);">
+                                    <span class="label label-success label-inline mr-2" style="color:black; font-weight:bold">Detalhes</span>
+                                </a>
+                            }
+
                         </td>
                     </tr>
                 }
@@ -88,21 +100,28 @@
                     <div class="col-md-12">
 
                         <div class="form-group row">
-                            <div class="col-lg-4">
+                            <div class="col-lg-3">
                                 <label>% de juros atraso</label>
                                 <div class="input-group">
-                                    <input type="text" class="form-control" id="ValorJuros" value="0,20" onkeyup="FormatarMoeda(this);">
+                                    <input type="text" class="form-control" id="ValorJuros" value="0,20" onkeyup="FormatarMoeda(this);CalcularValorCorrigidoChange();">
                                 </div>
                                 <span class="form-text text-muted">% de juros atraso por dia </span>
                             </div>
-                            <div class="col-lg-4">
+                            <div class="col-lg-3">
+                                <label>Dias de atraso: </label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="DiasDeAtraso" value="0" disabled="disabled">
+                                </div>
+                                <span class="form-text text-muted">Dias de atraso</span>
+                            </div>
+                            <div class="col-lg-3">
                                 <label>Valor parcela:</label>
                                 <div class="input-group">
                                     <input type="text" class="form-control" id="ValorParcela" disabled="disabled" value="0,00" onkeyup="FormatarMoeda(this);">
                                 </div>
                                 <span class="form-text text-muted">Entrada para abater nas parcelas</span>
                             </div>
-                            <div class="col-lg-4">
+                            <div class="col-lg-3">
                                 <label>Valor parcela corrigido:</label>
                                 <div class="input-group">
                                     <input type="text" class="form-control" id="ValorCorrigido" value="0,00" disabled="disabled" onkeyup="FormatarMoeda(this);">
@@ -149,8 +168,40 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Save changes</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                <button type="button" class="btn btn-primary" onclick="Receber();">Receber</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* MODAL DETALHES *@
+<div class="modal fade" id="modal_detalhes_parcela" data-backdrop="static" tabindex="-1" backs role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalhes Parcela</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <i aria-hidden="true" class="ki ki-close"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th> Data Pagamento</th>
+                            <th> Valor </th>
+                            <th> Taxa juros </th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyDetalhesPagamento">
+                          
+                        
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
             </div>
         </div>
     </div>

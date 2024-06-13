@@ -31,17 +31,14 @@
                 Swal.fire({
                     title: "Eba",
                     text: "Venda incluída com sucesso!",
-                    icon: "success",
+                    icon: "error",
                     confirmButtonText: "OK!",
                     allowOutsideClick: false,  // Evita que o alerta seja fechado ao clicar fora dele
                     allowEscapeKey: false,     // Evita que o alerta seja fechado ao pressionar a tecla "Escape"
                     allowEnterKey: false       // Evita que o alerta seja fechado ao pressionar a tecla "Enter"
                 }).then(function(result) {
                     if (result.value) {
-                       debugger;
-
-                        //falta fazer o redirecionamento
-
+                        window.location.replace("/Vendas");
                     }
                 });
             }

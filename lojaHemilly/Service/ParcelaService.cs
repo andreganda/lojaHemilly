@@ -6,6 +6,7 @@ namespace lojaHemilly.Service
     public interface IParcelaService
     {
         Task<Parcela> Create(Parcela parcela);
+        Task<Parcela> Update(Parcela parcela);
     }
 
     public class ParcelaService : IParcelaService
@@ -21,6 +22,20 @@ namespace lojaHemilly.Service
             _context.Parcelas.Add(parcela);
             await _context.SaveChangesAsync();
             return parcela;
+        }
+
+        public async Task<Parcela> Update(Parcela parcela)
+        {
+            try
+            {
+                _context.Update(parcela);
+                await _context.SaveChangesAsync();
+                return parcela;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
     }
 }

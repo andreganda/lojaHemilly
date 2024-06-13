@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using lojaHemilly.DataBase;
+using lojaHemilly.Models;
+using lojaHemilly.Service;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using lojaHemilly.DataBase;
-using lojaHemilly.Models;
-using lojaHemilly.Service;
+using Newtonsoft.Json;
+using System.Text;
 
 namespace lojaHemilly.Controllers
 {
@@ -29,12 +27,126 @@ namespace lojaHemilly.Controllers
             ViewData["cliente"] = venda.Cliente;
             ViewData["venda"] = venda;
 
-            var florDeLizContext = _context.Parcelas.Where(a=> a.VendaId == id).Include(p => p.Venda);
-
-
+            var florDeLizContext = _context.Parcelas.Where(a => a.VendaId == id).Include(p => p.Venda);
             return View(await florDeLizContext.ToListAsync());
         }
 
+        [HttpPost]
+        public async Task<Mensagem> EfetuarPagamentoParcelaAsync(PagamentoParcelaViewModel venda)
+        {
+            var m = new Mensagem();
+            var parcela = await _context.Parcelas.FirstOrDefaultAsync(m => m.Id == venda.IdParcela);
+            var valorPagamento = Convert.ToDecimal(venda.Valor.Replace(".", ","));
+
+            return m;
+        }
+
+        [HttpPost]
+        public async Task<Mensagem> EfetuarPagamento(PagamentoParcelaViewModel venda)
+        {
+            var m = new Mensagem();
+
+            try
+            {
+
+                var parcela = await _context.Parcelas.FirstOrDefaultAsync(m => m.Id == venda.IdParcela);
+                var historico = JsonConvert.DeserializeObject<List<ParcelaHistorico>>(parcela.Historico);
+
+                var valorPagamento = Convert.ToDecimal(venda.Valor.Replace(".", ","));
+                var dataPagamento = Convert.ToDateTime(venda.DataPagamento);
+                var diasVencido = Convert.ToInt32(DateTime.Now.Date.Subtract(parcela.DataVencimento.Date).TotalDays);
+                var juros = Convert.ToDecimal(venda.Juros.Replace(".", ","));
+
+                //se estiver vencido
+                CalculoPagamentoParcela(parcela, valorPagamento, diasVencido, juros);
+
+                parcela.DataPagamento = DateTime.Now;
+
+
+                if (historico == null)
+                {
+                    List<ParcelaHistorico> listH = new List<ParcelaHistorico>
+                    {
+                        new ParcelaHistorico { Valor = valorPagamento.ToString(),
+                            DataPagamento = dataPagamento.ToShortDateString(),
+                            Juros = juros.ToString()
+                        }
+                    };
+                    parcela.Historico = JsonConvert.SerializeObject(listH, Formatting.Indented);
+                }
+                else
+                {
+                    historico.Add(new ParcelaHistorico { Valor = valorPagamento.ToString(), DataPagamento = dataPagamento.ToShortDateString(), Juros = juros.ToString() });
+                    parcela.Historico = JsonConvert.SerializeObject(historico, Formatting.Indented);
+                }
+
+                _context.Update(parcela);
+                await _context.SaveChangesAsync();
+
+
+                //TODO - realizar histório de vendas parciais.
+                m.Status = 1;
+                m.Descricao = "Pagamento de parcela realizado com sucesso.";
+
+                return m;
+            }
+            catch (Exception ex)
+            {
+
+                m.Status = 0;
+                m.Descricao = ex.Message.ToString();
+                return m;
+            }
+        }
+
+        [HttpGet]
+        public async Task<string> DetalharHistorico(int idParcela)
+        {
+            var parcela = await _context.Parcelas.FirstOrDefaultAsync(m => m.Id == idParcela);
+            var historico = JsonConvert.DeserializeObject<List<ParcelaHistorico>>(parcela.Historico);
+
+            var sb = new StringBuilder();
+
+            foreach (var item in historico)
+            {
+                sb.Append($"<tr>" +
+                    $"<td>{item.DataPagamento}</td> <td>{item.Valor}</td> <td>{item.Juros}</td>" +
+                    $"</tr>");
+            }
+
+            return sb.ToString();
+
+        }
+
+        private void CalculoPagamentoParcela(Parcela? parcela, decimal valorPagamento, int diasVencido, decimal juros)
+        {
+            if (diasVencido > 0)
+            {
+                var valorParcela = ((parcela.Valor * (juros / 100)) * diasVencido) + parcela.Valor;
+                valorParcela = Math.Round(valorParcela, 2);
+
+                if (valorPagamento >= valorParcela)
+                {
+                    parcela.Pago = true;
+                }
+                else
+                {
+                    parcela.Valor = valorParcela - valorPagamento;
+                }
+                //TODO - fazer o debito de outras parcelas, caso o cliente dê mais dinheiro.
+            }
+            else
+            {
+                if (valorPagamento >= parcela.Valor)
+                {
+                    parcela.Pago = true;
+                }
+                else
+                {
+                    parcela.Valor -= valorPagamento;
+                }
+            }
+        }
 
         #region CRIAÇÃO AUTOMATICA
 
@@ -171,7 +283,22 @@ namespace lojaHemilly.Controllers
         private bool ParcelaExists(int id)
         {
             return _context.Parcelas.Any(e => e.Id == id);
-        } 
+        }
         #endregion
+
+        public class PagamentoParcelaViewModel
+        {
+            public int IdParcela { get; set; }
+            public string? Valor { get; set; }
+            public string? Juros { get; set; }
+            public string? DataPagamento { get; set; }
+        }
+
+        public class ParcelaHistorico
+        {
+            public string DataPagamento { get; set; }
+            public string? Valor { get; set; }
+            public string? Juros { get; set; }
+        }
     }
 }
