@@ -98,16 +98,19 @@ namespace lojaHemilly.Controllers
             {
                 try
                 {
+                    var clienteBd = new Cliente();
                     if (cliente.Email != string.Empty && cliente.Email != null)
                     {
                         // Verificar se o e-mail já está em uso
-                        var emailExistente = await _clienteService.VerificarEmailExistenteAsync(cliente.Email);
-                        if (emailExistente != null && emailExistente.ClienteID != id)
+                        clienteBd = await _clienteService.VerificarEmailExistenteAsync(cliente.Email);
+                        if (clienteBd != null && clienteBd.ClienteID != id)
                         {
                             TempData["MessageError"] = $"O e-mail {cliente.Email} já está em uso.";
                             return RedirectToAction(nameof(Index));
                         } 
                     }
+
+                    _context.Entry(clienteBd).State = EntityState.Detached;
 
                     await _clienteService.Update(cliente);
                     TempData["MessageSuccess"] = $"Cliente {cliente.Nome} foi alterado com sucesso!";

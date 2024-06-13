@@ -28,10 +28,12 @@ namespace lojaHemilly.Service
         public async Task<Cliente> Create(Cliente cliente)
         {
 
-            cliente.DataCadastro = DateTime.Now;
-            cliente.DataAlteracaoCadastro = null;
-            cliente.Nome = cliente.Nome.ToUpper();
-            cliente.Endereco = cliente.Endereco?.ToUpper();
+            //cliente.DataCadastro = DateTime.Now;
+            //cliente.DataAlteracaoCadastro = null;
+            //cliente.Nome = cliente.Nome.ToUpper();
+            //cliente.Endereco = cliente.Endereco?.ToUpper();
+
+            cliente.Status = 1;
 
             _context.Clientes.Add(cliente);
             await _context.SaveChangesAsync();
@@ -42,26 +44,23 @@ namespace lojaHemilly.Service
         {
             try
             {
-                var clienteDb = await Detail(cliente.ClienteID);
-                var dataCadastro = clienteDb.DataCadastro;
+                //var clienteDb = await Detail(cliente.ClienteID);
+                //var dataCadastro = clienteDb.DataCadastro;
 
-                cliente.DataCadastro = dataCadastro;
-                cliente.Nome = cliente.Nome.ToLower();
-                cliente.Status = clienteDb.Status;
+                //cliente.DataCadastro = dataCadastro;
+                //cliente.Nome = cliente.Nome.ToLower();
+                //cliente.Status = clienteDb.Status;
 
-                if (clienteDb != null)
-                {
-                    cliente.DataCadastro = dataCadastro;
-                    //_context.Clientes.Update(cliente);
-                    _context.Entry(clienteDb).CurrentValues.SetValues(cliente);
-
-
+                //if (clienteDb != null)
+                //{
+                    _context.Clientes.Update(cliente);
+                    //_context.Entry(clienteDb).CurrentValues.SetValues(cliente);
                     await _context.SaveChangesAsync();
 
                     return cliente;
-                }
+                //}
 
-                return null;
+                //return null;
             }
             catch (Exception ex)
             {

@@ -28,7 +28,7 @@ namespace lojaHemilly.Models
         [StringLength(100)]
         public string? Email { get; set; }
 
-        [Required(ErrorMessage = "Nome é obrigatório")]
+        [Required(ErrorMessage = "Telefone é obrigatório")]
         public string Telefone { get; set; }
 
         public DateTime? DataCadastro { get; set; }
